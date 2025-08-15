@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   keywords: ['code security', 'AI code analysis', 'vulnerability scanner', 'performance optimization', 'code quality'],
   authors: [{ name: 'A.I. Fixxer Clone' }],
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
+    icon: '/images/logo.svg',
+    shortcut: '/images/logo.svg',
     apple: '/images/logo.svg',
   },
   openGraph: {
@@ -49,11 +49,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="icon" href="/images/logo.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.svg" />
+        <link rel="icon" type="image/svg+xml" sizes="32x32" href="/images/logo.svg" />
+        <link rel="icon" type="image/svg+xml" sizes="16x16" href="/images/logo.svg" />
       </head>
       <body className={`${inter.className} h-full antialiased`}>
         <div className="min-h-full">
