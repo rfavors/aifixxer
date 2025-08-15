@@ -1,0 +1,29 @@
+{
+  "name": "ai-fixxer",
+  "type": "docker",
+  "dockerfile": "./Dockerfile",
+  "port": 3000,
+  "healthcheck": {
+    "path": "/",
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3,
+    "start_period": 40
+  },
+  "environment": {
+    "NODE_ENV": "production",
+    "PORT": "3000",
+    "HOSTNAME": "0.0.0.0",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "resources": {
+    "memory": "512Mi",
+    "cpu": "0.5"
+  },
+  "restart_policy": "unless-stopped",
+  "labels": {
+    "app": "ai-fixxer",
+    "version": "1.0.0",
+    "environment": "production"
+  }
+}
