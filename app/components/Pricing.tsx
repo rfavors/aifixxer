@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
+import getStripe, { getPriceId } from '@/lib/stripe'
 
 const plans = [
   {
@@ -100,6 +101,52 @@ const faqs = [
 export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [loading, setLoading] = useState<string | null>(null)
+
+  const handleCheckout = async (planName: string) => {
+    try {
+      setLoading(planName)
+      
+      const priceId = getPriceId(planName, billingPeriod)
+      
+      if (!priceId) {
+        alert('Price not configured for this plan. Please contact support.')
+        return
+      }
+
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+          planName,
+        }),
+      })
+
+      const { sessionId, error } = await response.json()
+
+      if (error) {
+        alert('Error creating checkout session. Please try again.')
+        return
+      }
+
+      const stripe = await getStripe()
+      const { error: stripeError } = await stripe!.redirectToCheckout({
+        sessionId,
+      })
+
+      if (stripeError) {
+        alert('Error redirecting to checkout. Please try again.')
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      alert('An error occurred. Please try again.')
+    } finally {
+      setLoading(null)
+    }
+  }
 
   const getPrice = (basePrice: string) => {
     if (basePrice === '$0') return basePrice
@@ -227,16 +274,24 @@ export default function Pricing() {
                   } else if (plan.name === 'Team') {
                     alert('Contact Sales: Please email sales@aifixxer.com or call 1-800-AI-FIXXER to discuss your team needs.')
                   } else {
-                    alert(`${plan.cta}: This would redirect to the payment page for the ${plan.name} plan. Demo purposes only.`)
+                    handleCheckout(plan.name)
                   }
                 }}
-                className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                disabled={loading === plan.name}
+                className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
                   plan.popular
-                    ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-lg hover:shadow-xl'
-                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                    ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-lg hover:shadow-xl disabled:hover:bg-primary-600'
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:hover:bg-gray-100'
                 }`}
               >
-                {plan.cta}
+                {loading === plan.name ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    Processing...
+                  </div>
+                ) : (
+                  plan.cta
+                )}
               </button>
             </motion.div>
           ))}
@@ -341,8 +396,19 @@ export default function Pricing() {
           <p className="text-lg text-gray-600 mb-8">
             Join thousands of developers who trust A.I. Fixxer to keep their code secure and performant.
           </p>
-          <button className="btn-primary text-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-            Start Your Free Trial
+          <button 
+            onClick={() => handleCheckout('Pro')}
+            disabled={loading === 'Pro'}
+            className="btn-primary text-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            {loading === 'Pro' ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
+                Processing...
+              </div>
+            ) : (
+              'Start Your Free Trial'
+            )}
           </button>
           <p className="mt-4 text-sm text-gray-500">
             No credit card required • Cancel anytime • 30-day money-back guarantee
